@@ -77,7 +77,8 @@ The number of hops to stanford.edu is 27. This is much lower than google.com's 1
 
 Below is the output of the command `tracert stanford.edu` on windows: 
 
-![plot](./Q3/Q31.png)
+<!-- ![plot](./Q3/Q31.png) -->
+
 
 ### Part h
 The latency difference between stanford.edu and google.com is 329.266 ms - 9.009 ms = 320.257 ms. This is due to stanford.edu being farther away from my location than google.com. This is because the packets have to travel a longer distance to reach stanford.edu than google.com. This is also leads to the higher number of hops to stanford.edu than google.com.
@@ -94,7 +95,7 @@ To restore the localhost I ran the command `sudo iptables -D INPUT -p icmp --icm
 
 ## Problem 5
 
-![plot](./Q5/Q5.png)
+![plot](./Q5/hell.png)
 
 ## Problem 6
 
