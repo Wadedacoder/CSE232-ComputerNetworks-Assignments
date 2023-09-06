@@ -11,6 +11,13 @@
 class ByteStream {
   private:
     // Your code here -- add private members as necessary.
+    //Curly braces prevent narrowing conversion
+    size_t _capacity;  //!< Maximum number of bytes that can be stored in the stream.
+    std::deque<char> _buffer;  //!< The buffer that stores the bytes.
+    size_t _bytes_written{};  //!< Total number of bytes written.
+    size_t _bytes_read{};  //!< Total number of bytes read.
+
+    bool _input_ended{};  //!< Flag indicating that the input has ended.
 
     bool _error{};  //!< Flag indicating that the stream suffered an error.
 

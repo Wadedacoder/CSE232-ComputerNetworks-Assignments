@@ -8,14 +8,21 @@
 #include <deque>
 #include <iostream>
 #include <string>
+#include <map>
+#include <queue>
 
 //! \brief A class that assembles a series of excerpts from a byte stream (possibly out of order,
-//! possibly overlapping) into an in-order byte stream.
+//! possibly overlapping) into an in-order byte stream. 
 class StreamReassembler {
   private:
     // Your code here -- add private members as necessary.
 
     ByteStream _output;  //!< The reassembled in-order byte stream
+    std::priority_queue<int> _index;
+    std::map<uint64_t, std::string> _buffer;
+    int _capacity;
+    int _unassembled_bytes;
+    int _cur_index;
 
   public:
     //! \brief Construct a `StreamReassembler` that will store up to `capacity` bytes.
