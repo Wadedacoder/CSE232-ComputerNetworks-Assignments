@@ -22,7 +22,7 @@ class StreamReassembler {
     std::map<uint64_t, std::string> _buffer;
     int _capacity;
     int _unassembled_bytes;
-    int _cur_index;
+    int _ack_index;
 
   public:
     //! \brief Construct a `StreamReassembler` that will store up to `capacity` bytes.
