@@ -1,6 +1,7 @@
 #include "byte_stream.hh"
 
 #include <algorithm>
+#include <iostream>
 
 // You will need to add private members to the class declaration in `byte_stream.hh`
 
@@ -29,6 +30,7 @@ size_t ByteStream::write(const string &data) {
   {
     if(_buffer.size() < _capacity)
     {
+      //  cout << "Writing " << data[i] << " to buffer\n";
       _buffer.push_back(data[i]);
       data_transfered++;
     }

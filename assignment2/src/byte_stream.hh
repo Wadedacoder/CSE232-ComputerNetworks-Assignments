@@ -3,6 +3,7 @@
 
 #include <deque>
 #include <string>
+#include <vector>
 //! \brief An in-order byte stream.
 
 //! Bytes are written on the "input" side and read from the "output"

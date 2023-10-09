@@ -29,3 +29,10 @@ Part 1 - Required to us to implement a ByteStream class which would be used by t
 The image below shows the output of the test cases for the ByteStream class.
 
 ![test_case](./bstreamctest.png)
+
+## Part 2 and 3
+Part 2 - Required us to implement a Reassembler class which would be used by the TCP receiver to reassemble the incoming data. Then we had to implement a TCP receiver which would use the ByteStream and Reassembler class to reassemble the incoming data.
+
+The image below shows the output of the test cases for the Reassembler class.
+![test_case](./report_part2.png)
+
