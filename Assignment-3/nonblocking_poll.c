@@ -10,7 +10,7 @@
 #include <arpa/inet.h>
 #include <unistd.h>
 #include <netdb.h>
-#include <sys/epoll.h>
+#include <poll.h>
 
 // Thread Library
 #include <pthread.h>
@@ -18,7 +18,7 @@
 
 // Network Constants
 const char* PORT = "8081";
-const int MAX_CONNECTIONS = 1024;
+const int MAX_CONNECTIONS = 5000;
 
 struct thread_args {
     int new_fd;
@@ -85,7 +85,8 @@ int main() {
     // Fill the information about the server : Going to use poll() instead of select()
     int status;
     int server_socket;
-    struct epoll_event events[MAX_CONNECTIONS];
+    int client_socket[MAX_CONNECTIONS];
+    struct pollfd fds[MAX_CONNECTIONS];
     int sockfd = initSocket();
 
         // Listen for connections
@@ -94,74 +95,89 @@ int main() {
         return -1;
     }
 
-    // Create epoll instance
-    int epollfd = epoll_create1(0);
-    if(epollfd == -1) {
-        printf("Error in epoll_create1()\n");
-        return -1;
-    }
+    // Initialize fds
+    fds[0].fd = sockfd;
+    fds[0].events = POLLIN;
 
-    // Add server socket to epoll
-    struct epoll_event event;
-    event.events = EPOLLIN;
-    event.data.fd = sockfd;
-    if(epoll_ctl(epollfd, EPOLL_CTL_ADD, sockfd, &event) == -1) {
-        printf("Error in epoll_ctl()\n");
-        return -1;
+    server_socket = sockfd;
+
+    for(int i = 1; i < MAX_CONNECTIONS; i++) {
+        fds[i].fd = -1;
+        client_socket[i] = -1;
     }
 
     while (true)
     {
-        int num_fds = epoll_wait(epollfd, events, MAX_CONNECTIONS, -1);
-        if(num_fds == -1) {
-            printf("Error in epoll_wait()\n");
+        int nfds = 1;
+        for(int i = 1; i < MAX_CONNECTIONS; i++) {
+            int tmp = client_socket[i];
+            if(tmp == -1) {
+               continue;
+            }
+            nfds++;
+            fds[i].events = POLLIN;
+            fds[i].fd = tmp;
+        }
+
+        int activity = poll(fds, nfds, -1);
+        if(activity < 0) {
+            printf("Error in poll()\n");
             return -1;
         }
 
-        for(int i = 0; i < num_fds; i++){
-            if(events[i].data.fd == sockfd) {
-                // Accept new connection
-                struct sockaddr_storage client_addr;
-                socklen_t addr_size = sizeof client_addr;
-                int new_fd = accept(sockfd, (struct sockaddr *)&client_addr, &addr_size);
-                if(new_fd == -1) {
-                    printf("Error in accept()\n");
-                    return -1;
+        if(fds[0].revents & POLLIN) {
+            int new_fd = accept(server_socket, NULL, NULL);
+            if(new_fd == -1) {
+                printf("Error in accepting connection\n");
+                return -1;
+            }
+            for(int i = 1; i < MAX_CONNECTIONS; i++) {
+                if(client_socket[i] == -1) {
+                    // printf("New connection accepted\n");
+                    client_socket[i] = new_fd;
+                    break;
                 }
+            }
+        }
 
-                // Add new_fd to epoll
-                event.events = EPOLLIN;
-                event.data.fd = new_fd;
-                if(epoll_ctl(epollfd, EPOLL_CTL_ADD, new_fd, &event) == -1) {
-                    printf("Error in epoll_ctl()\n");
-                    return -1;
-                }
-
-            } else {
-                // Handle data from client
-                int new_fd = events[i].data.fd;
-                unsigned int n;
-                int status = recv(new_fd, &n, sizeof n, 0);
+        for(int i = 1; i < MAX_CONNECTIONS; i++) {
+            int tmp = client_socket[i];
+            if(tmp == -1) {
+                continue;
+            }
+            if(fds[i].revents & POLLIN) {
+                int n;
+                status = recv(tmp, &n, sizeof(n), 0);
                 if(status == -1) {
                     printf("Error in receiving data\n");
+                    // close(tmp);
+                    client_socket[i] = -1;
                     continue;
                 }
-
+                if(status == 0) {
+                    printf("Connection closed\n");
+                    // close(tmp);
+                    client_socket[i] = -1;
+                    continue;
+                }
                 // Calculate factorial
                 unsigned int fact_n = fact(n);
 
                 // printf("Factorial of %u is %u\n", n, fact_n);
 
                 // Send data to client
-                status = send(new_fd, &fact_n, sizeof fact_n, 0);
+                status = send(tmp, &fact_n, sizeof fact_n, 0);
                 if(status == -1) {
                     printf("Error in sending data\n");
+                    // close(tmp);
+                    client_socket[i] = -1;
+                    // return -1;
                     continue;
                 }
-
+                
             }
-
         }
+        // printf("Waiting for connections\n");
     }
 
 }
